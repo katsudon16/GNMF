@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import os
 from os.path import join, dirname, abspath
 from PIL import Image
+from PIL.ImageOps import expand
 import seaborn as sns
 
 # 1. compute weights
@@ -12,10 +13,12 @@ import seaborn as sns
 
 # def factorize_nmf(V):
 
-def init_rand_matrix(nrow, ncol, seed=123):
+def init_rand_matrix(nrow, ncol, seed=None):
     """
     Initialize matrix (random) given # rows and # cols
     """
+    if not seed:
+        seed = np.random.randint(1000)
     np.random.seed(seed)
     return(np.random.dirichlet(np.ones(nrow), size=ncol).T)
 
@@ -38,14 +41,13 @@ def read_dataset():
             V[:, img_n] = np.asarray(img).flatten()
     return(V)
 
-def factorize_nmf(V, rank=20, n_iter = 70):
+def factorize_nmf(V, rank=20, n_iter = 100):
     """
     Factorizes matrix V into W and H given rank
     """
-    print(V.shape)
     n, m = V.shape
-    W = init_rand_matrix(n, rank, 123)
-    H = init_rand_matrix(rank, m, 456)
+    W = init_rand_matrix(n, rank)
+    H = init_rand_matrix(rank, m)
     #TODO: multiplicative or additive (grad descent)?
     #TODO: euclidean or divergence
     # curr: euclidean and multiplicative
@@ -73,25 +75,20 @@ def run_nmf():
     plot(W)
 
 def plot(W):
-    # out of 20, show image 2
-    for i in range(20):
-        basis = W[:, i].reshape((32, 32))
-        sns.heatmap(basis, cmap="gray")
-        plt.show()
-    return
-    set_cmap('gray')
-    blank = new("L", (133 + 6, 133 + 6))
-    for i in range(7):
-        for j in range(7):
-            basis = np.array(W[:, 7 * i + j])[:, 0].reshape((19, 19))
-            basis = basis / np.max(basis) * 255
-            basis = 255 - basis
-            ima = fromarray(basis)
-            ima = ima.rotate(180)
-            expand(ima, border=1, fill='black')
-            blank.paste(ima.copy(), (j * 19 + j, i * 19 + i))
-    imshow(blank)
-    savefig("cbcl_faces.png")
+    """
+    Plots all 20 basis images
+    """
+    plt.set_cmap("gray")
+    canvas = Image.new("L", (5 * 32 + 6, 4 * 32 + 5)) # (w, h)
+    # 4 rows, 5 cols
+    for i in range(4):
+        for j in range(5):
+            basis = W[:, i * 5 + j].reshape((32, 32))
+            basis = basis / basis.max() * 255
+            img = expand(Image.fromarray(basis), border=1, fill=255)
+            canvas.paste(img.copy(), (j * 32 + j, i * 32 + i))
+    plt.imshow(canvas)
+    plt.show()
 
 if __name__ == "__main__":
     run_nmf()
