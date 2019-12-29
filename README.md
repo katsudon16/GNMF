@@ -7,3 +7,4 @@ The current structure follows the example files structure in [nimfa](https://git
 - Fix divergence update function in NMF code (sparse matrix issue)
 - Add divergence update method in GNMF
 - Create synthetic dataset
+- Make the code more generic (not specific to the dataset used)
