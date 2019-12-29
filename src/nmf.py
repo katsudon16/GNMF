@@ -6,13 +6,6 @@ from PIL import Image
 from PIL.ImageOps import expand
 import seaborn as sns
 
-# 1. compute weights
-# 2. compute smoothness of the low-dimensional representation
-# 3. compute objective functions
-# 4. build update functions
-
-# def factorize_nmf(V):
-
 def init_rand_matrix(nrow, ncol, seed=None):
     """
     Initialize matrix (random) given # rows and # cols
@@ -41,31 +34,49 @@ def read_dataset():
             V[:, img_n] = np.asarray(img).flatten()
     return(V)
 
-def factorize_nmf(V, rank=20, n_iter = 100):
+def update_euclidean(W, H, V):
+    # update H
+    H = H * np.divide(W.T @ V, W.T @ W @ H)
+    # update W
+    W = W * np.divide(V @ H.T, W @ H @ H.T)
+    # calc objective func
+    R = V - (W @ H)
+    D = np.sum(R * R)
+    return(W, H, D)
+
+def update_divergence(W, H, V):
+    #TODO: fix when matrix is sparse
+    # update H
+    H_denom = np.sum(H, axis=1).reshape((H.shape[0], 1))
+    H = H * np.divide(W.T @ np.divide(V, W @ H), H_denom)
+    # update W
+    W_denom = np.sum(W, axis=0)
+    W = W * np.divide(np.divide(V, W @ H) @ H.T, W_denom)
+    # calc objective func
+    V_temp = W @ H
+    obj_val = np.sum(V * np.log(np.divide(V, V_temp)) - V + V_temp)
+    return(W, H, obj_val)
+
+def factorize_nmf(V, rank=20, n_iter = 100, method="euclidean"):
     """
-    Factorizes matrix V into W and H given rank
+    Factorizes matrix V into W and H given rank using multiplicative method
+    method options: ["euclidean", "divergence"]
     """
     n, m = V.shape
     W = init_rand_matrix(n, rank)
     H = init_rand_matrix(rank, m)
     #TODO: multiplicative or additive (grad descent)?
-    #TODO: euclidean or divergence
-    # curr: euclidean and multiplicative
     for iter in range(n_iter):
-        # update H
-        H = H * np.divide(W.T @ V, W.T @ W @ H)
-        # update W
-        W = W * np.divide(V @ H.T, W @ H @ H.T)
-        # calc objective func
-        R = V - (W @ H)
-        D = np.sum(R * R)
-        print("Current objective function value", D)
-
+        if method == "euclidean":
+            W, H, obj_val = update_euclidean(W, H, V)
+        else:
+            W, H, obj_val = update_divergence(W, H, V)
+        print("Iteration %d; objective value = %.2f" % (iter, obj_val))
     return(W, H)
 
 def run_nmf():
     """
-    Run graph regularized nonnegative matrix factorization
+    Run nonnegative matrix factorization
 
     Currently uses COIL20 dataset for testing
     """
@@ -78,6 +89,9 @@ def plot(W):
     """
     Plots all 20 basis images
     """
+    sns.heatmap(W)
+    plt.show()
+    return
     plt.set_cmap("gray")
     canvas = Image.new("L", (5 * 32 + 6, 4 * 32 + 5)) # (w, h)
     # 4 rows, 5 cols
