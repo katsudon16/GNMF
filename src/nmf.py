@@ -19,7 +19,6 @@ def read_dataset():
     """
     Read COIL20 dataset, resize to 32x32, and return them as np array V
     """
-    print(dirname(dirname(os.getcwd())))
     coil20_dir = join(dirname(dirname(abspath(__file__))), "dataset", "COIL20")
     coil20_len = 20
     coil20_obj_len = 72
