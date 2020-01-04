@@ -43,20 +43,30 @@ def update_euclidean(W, H, V):
     D = np.sum(R * R)
     return(W, H, D)
 
+def np_pos(np_ar, add_eps=False):
+    """Ensures all values in a numpy array > 0"""
+    eps = np.finfo(np_ar.dtype).eps
+    if add_eps:
+        return(np_ar + eps)
+    np_ar[np_ar == 0] = eps
+    return(np_ar)
+
 def update_divergence(W, H, V):
-    #TODO: fix when matrix is sparse
+    n, k = W.shape
+    H_col_sum = np.sum(H, axis=1).reshape((1, k))
+    W_row_sum = np.sum(W, axis=0).reshape((k, 1))
     # update H
-    H_denom = np.sum(H, axis=1).reshape((H.shape[0], 1))
-    H = H * np.divide(W.T @ np.divide(V, W @ H), H_denom)
+    H = H * np.divide(W.T @ np.divide(V, W @ H), W_row_sum)
     # update W
-    W_denom = np.sum(W, axis=0)
-    W = W * np.divide(np.divide(V, W @ H) @ H.T, W_denom)
+    W = W * np.divide(np.divide(V, W @ H) @ H.T, H_col_sum)
     # calc objective func
     V_temp = W @ H
-    obj_val = np.sum(V * np.log(np.divide(V, V_temp)) - V + V_temp)
+    obj_val = np.sum(V * np.log(
+        np_pos(np.divide(np_pos(V), np_pos(V_temp)), add_eps=True)
+    ) - V + V_temp)
     return(W, H, obj_val)
 
-def factorize_nmf(V, rank=20, n_iter = 100, method="euclidean"):
+def factorize_nmf(V, rank=20, n_iter = 100, method="divergence"):
     """
     Factorizes matrix V into W and H given rank using multiplicative method
     method options: ["euclidean", "divergence"]
@@ -64,7 +74,6 @@ def factorize_nmf(V, rank=20, n_iter = 100, method="euclidean"):
     n, m = V.shape
     W = init_rand_matrix(n, rank)
     H = init_rand_matrix(rank, m)
-    #TODO: multiplicative or additive (grad descent)?
     for iter in range(n_iter):
         if method == "euclidean":
             W, H, obj_val = update_euclidean(W, H, V)
@@ -88,9 +97,9 @@ def plot(W):
     """
     Plots all 20 basis images
     """
-    sns.heatmap(W)
-    plt.show()
-    return
+    # sns.heatmap(W)
+    # plt.show()
+    # return
     plt.set_cmap("gray")
     canvas = Image.new("L", (5 * 32 + 6, 4 * 32 + 5)) # (w, h)
     # 4 rows, 5 cols
