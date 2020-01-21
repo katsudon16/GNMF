@@ -33,17 +33,19 @@ class Nmf(object):
 
     def update_divergence(self, W, H, V):
         n, k = W.shape
-        H_col_sum = np.sum(H, axis=1).reshape((1, k))
-        W_row_sum = np.sum(W, axis=0).reshape((k, 1))
         # update H
+        W_row_sum = np.sum(W, axis=0).reshape((k, 1))
         H = H * np.divide(W.T @ np.divide(V, W @ H), W_row_sum)
         # update W
+        H_col_sum = np.sum(H, axis=1).reshape((1, k))
         W = W * np.divide(np.divide(V, W @ H) @ H.T, H_col_sum)
         # calc objective func
         V_temp = W @ H
+        # obj_val = np.sum(V * np.log(np.divide(V, V_temp)) - V + V_temp)
         obj_val = np.sum(V * np.log(
         self.np_pos(np.divide(self.np_pos(V), self.np_pos(V_temp)), add_eps=True)
         ) - V + V_temp)
+
         return(W, H, obj_val)
 
     def factorize(self, V, rank=20, n_iter=100):
@@ -51,7 +53,6 @@ class Nmf(object):
         Factorizes matrix V into W and H given rank using multiplicative method
         method options: ["euclidean", "divergence"]
         """
-        print("here!")
         n, m = V.shape
         W = self.init_rand_matrix(n, rank)
         H = self.init_rand_matrix(rank, m)

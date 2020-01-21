@@ -77,8 +77,8 @@ def factorize(V, rank=20, n_iter = 100, method="euclidean"):
     Factorizes matrix V into W and H given rank using multiplicative method
     method options: ["euclidean", "divergence"]
     """
-    gnmf = Gnmf(method=method)
-    W, H = gnmf.factorize(V, rank=rank, n_iter=n_iter)
+    nmf = Nmf(method=method)
+    W, H = nmf.factorize(V, rank=rank, n_iter=n_iter)
     return(W, H)
 
 def plot(W):
@@ -102,5 +102,5 @@ def plot(W):
 
 if __name__ == "__main__":
     V = read_dataset()
-    W, H = factorize(V)
+    W, H = factorize(V, method="divergence")
     plot(W)
