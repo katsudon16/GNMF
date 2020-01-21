@@ -10,6 +10,7 @@ import sys
 sys.path.append(dirname(dirname(abspath(__file__))))
 
 from src.nmf import Nmf
+from src.gnmf import Gnmf
 
 def init_rand_matrix(nrow, ncol, seed=None):
     """
@@ -76,8 +77,8 @@ def factorize(V, rank=20, n_iter = 100, method="euclidean"):
     Factorizes matrix V into W and H given rank using multiplicative method
     method options: ["euclidean", "divergence"]
     """
-    nmf = Nmf(method=method)
-    W, H = nmf.factorize(V, rank=rank, n_iter=n_iter)
+    gnmf = Gnmf(method=method)
+    W, H = gnmf.factorize(V, rank=rank, n_iter=n_iter)
     return(W, H)
 
 def plot(W):
