@@ -4,7 +4,7 @@ class Gnmf(object):
     """
     Graph regularized NMF
     """
-    def __init__(self, rank=10, p=3, method="euclidean"):
+    def __init__(self, rank=10, p=3, lmbda=100, method="euclidean"):
         """
         - rank  : NMF rank
         - p     : # closest neighbors to be taken into account in the weight matrix
@@ -13,6 +13,7 @@ class Gnmf(object):
         self.rank = rank
         self.p = p
         self.method = method
+        self.lmbda = lmbda
 
     def init_rand_matrix(self, nrow, ncol, seed=None):
         """
@@ -48,10 +49,11 @@ class Gnmf(object):
                 W[i][neighbor] = W[neighbor][i] = np.dot(X[:,i], X[:,neighbor])
         return(W)
 
-    def update_euclidean(self, X, U, V, W, lmbda=100):
+    def update_euclidean(self, X, U, V, W):
         """
         Update U & V using multiplicative euclidean approach
         """
+        lmbda = self.lmbda
         # update V
         # calc the Laplacian matrix L
         D = np.diag(np.sum(W, axis=0))
