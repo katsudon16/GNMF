@@ -34,8 +34,9 @@ class Gnmf(object):
         # initialize distance matrix and W matrix
         dist_matrix = np.full((m, m), np.inf)
         W = np.zeros((m, m))
-        #TODO: implementation improvement?
+        #TODO: implementation improvement? remove for loops
         # src: https://ljvmiranda921.github.io/notebook/2017/02/09/k-nearest-neighbors/
+        #TODO: allow users to construct their own W matrix - test if symmetric
         for i in range(m - 1):
             for j in range(i + 1, m):
                 dist_matrix[i][j] = dist_matrix[j][i] = np.linalg.norm(X[:,i] - X[:,j])
@@ -45,8 +46,8 @@ class Gnmf(object):
             for j in range(p):
                 neighbor = sorted_idx[i][j]
                 # compute dot-product weighting
-                #TODO: ensure W is symmetric?
                 W[i][neighbor] = W[neighbor][i] = np.dot(X[:,i], X[:,neighbor])
+        #TODO*: locality sensitive hashing (LSH) - spend few minutes read on finding knn
         return(W)
 
     def update_euclidean(self, X, U, V, W):
@@ -109,6 +110,7 @@ class Gnmf(object):
         """
         n, m = X.shape
         rank = self.rank
+        method = self.method
         print("generating weight matrix...")
         W = self.get_weights_matrix(X)
         U = self.init_rand_matrix(n, rank)

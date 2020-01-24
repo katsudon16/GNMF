@@ -15,7 +15,12 @@ from src.gnmf import Gnmf
 def plot(W, width, height, len):
     """
     Plots all 20 basis images
+    - W     : the basis matrix
+    - width : # cols in the canvas
+    - height: # rows in the canvas
+    - len   : the height/width of the matrix (assuming it's a square)
     """
+    #TODO: better parameter names
     # sns.heatmap(W)
     # plt.show()
     # return
@@ -39,6 +44,6 @@ if __name__ == "__main__":
     # nmf = Nmf(rank=rank, method="divergence")
     # W, H = nmf.factorize(V, n_iter=100)
     # plot(W, 5, 1)
-    gnmf = Gnmf(method="divergence")
+    gnmf = Gnmf(p=5, lmbda=10, method="divergence")
     W, H = gnmf.factorize(V)
     plot(W, 5, 2, 5)
