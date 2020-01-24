@@ -39,6 +39,6 @@ if __name__ == "__main__":
     # nmf = Nmf(rank=rank, method="divergence")
     # W, H = nmf.factorize(V, n_iter=100)
     # plot(W, 5, 1)
-    gnmf = Gnmf()
+    gnmf = Gnmf(method="divergence")
     W, H = gnmf.factorize(V)
     plot(W, 5, 2, 5)
