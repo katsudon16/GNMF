@@ -1,8 +1,9 @@
 import numpy as np
 
 class Nmf(object):
-    def __init__(self, method="euclidean"):
+    def __init__(self, rank=20, method="euclidean"):
         self.method = method
+        self.rank = rank
 
     def init_rand_matrix(self, nrow, ncol, seed=None):
         """
@@ -48,12 +49,13 @@ class Nmf(object):
 
         return(W, H, obj_val)
 
-    def factorize(self, V, rank=20, n_iter=100):
+    def factorize(self, V, n_iter=100):
         """
         Factorizes matrix V into W and H given rank using multiplicative method
         method options: ["euclidean", "divergence"]
         """
         n, m = V.shape
+        rank = self.rank
         W = self.init_rand_matrix(n, rank)
         H = self.init_rand_matrix(rank, m)
         for iter in range(n_iter):
