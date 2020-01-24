@@ -6,10 +6,11 @@
 - COIL20 image dataset is used as one of the testing dataset
 - The algorithm iterates 100x and manages to produce decreasing objective function values
 
-### Todo list
+### Main todo list
 
-- ~~Fix divergence update function in NMF code (sparse matrix issue)~~
-- Add divergence update method in GNMF
-- Create synthetic dataset
-- ~~Make the code more generic (not specific to the dataset used)~~
-- Improve the convergence test
+- Test with different matrix shapes and # iterations to
+  i) check if the implementation is correct
+  ii) check if the implementation is scalable
+- Compare the result with the paper
+- Plot and compare the reconstruction errors between GNMF and vanilla NMF methods
+- Plot the objective function values vs iterations
