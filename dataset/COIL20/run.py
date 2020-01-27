@@ -7,7 +7,7 @@ from PIL.ImageOps import expand
 import seaborn as sns
 
 import sys
-sys.path.append(dirname(dirname(abspath(__file__))))
+sys.path.append(dirname(dirname(dirname(abspath(__file__)))))
 
 from src.nmf import Nmf
 from src.gnmf import Gnmf
@@ -25,7 +25,7 @@ def read_dataset():
     """
     Read COIL20 dataset, resize to 32x32, and return them as np array V
     """
-    coil20_dir = join(dirname(dirname(abspath(__file__))), "dataset", "COIL20")
+    coil20_dir = dirname(abspath(__file__))
     coil20_len = 20
     coil20_obj_len = 72
     img_size = 32
