@@ -14,3 +14,9 @@
 - Compare the result with the paper
 - Plot and compare the reconstruction errors between GNMF and vanilla NMF methods
 - Plot the objective function values vs iterations
+
+### Variables naming
+
+![image](https://user-images.githubusercontent.com/7066351/73201219-88dcc380-4106-11ea-8bca-cc1dbb3b2cb7.png)
+
+(instead of V = W x H)
