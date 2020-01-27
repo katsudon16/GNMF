@@ -48,7 +48,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Test GNMF implementation given parameters")
     parser.add_argument("-n", "--height", type=int, help="The height of the V matrix", required=True)
     parser.add_argument("-m", "--width", type=int, help="The width of the V matrix", required=True)
-    parser.add_argument("-r", "--rank", type=int, help="The rank used for the GNMF", required=True)
+    parser.add_argument("-k", "--rank", type=int, help="The rank used for the GNMF", required=True)
     parser.add_argument("-p", "--pneighbor", type=int, default=5, help="The number of nearest neighbors to be considered")
     parser.add_argument("-l", "--lmbda", type=int, default=10, help="The lambda used for the regularizer")
     parser.add_argument("-i", "--iters", type=int, default=[100], nargs="+", help="The list of # iterations to be run")
@@ -66,3 +66,4 @@ if __name__ == "__main__":
         U, V = gnmf.factorize(X, n_iter=iter)
         time_cp2 = time.time()
         print("Total time: ", time_cp2 - time_cp1)
+        print("=================================")
