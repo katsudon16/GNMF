@@ -1,4 +1,5 @@
 import numpy as np
+import time
 
 class Gnmf(object):
     """
@@ -29,6 +30,8 @@ class Gnmf(object):
         Generate weights matrix by p-nearest neighbors + dot-product weighting
         Complexity: O(N^2 * M)
         """
+        print("generating weight matrix...")
+        time_cp1 = time.time()
         _, m = X.shape
         p = self.p
         # initialize distance matrix and W matrix
@@ -48,6 +51,8 @@ class Gnmf(object):
                 # compute dot-product weighting
                 W[i][neighbor] = W[neighbor][i] = np.dot(X[:,i], X[:,neighbor])
         #TODO*: locality sensitive hashing (LSH) - spend few minutes read on finding knn
+        time_cp2 = time.time()
+        print("total time: ", time_cp2 - time_cp1)
         return(W)
 
     def update_euclidean(self, X, U, V, W):
@@ -84,9 +89,8 @@ class Gnmf(object):
         # calc the Laplacian matrix L
         D = np.diag(np.sum(W, axis=0))
         L = D - W
-        print(np.sum(U), np.sum(V))
         # update V
-        #TODO: improve using iterative algorithm CG
+        #TODO*: improve using iterative algorithm CG
         V = V * (U.T @ np.divide(X, U @ V))
         U_row_sum = np.sum(U, axis=0).reshape((k, 1))
         # TODO: check if it's scalable - test with different matrix size - use time package
@@ -111,18 +115,19 @@ class Gnmf(object):
         n, m = X.shape
         rank = self.rank
         method = self.method
-        print("generating weight matrix...")
         W = self.get_weights_matrix(X)
         U = self.init_rand_matrix(n, rank)
         V = self.init_rand_matrix(rank, m)
         print("starting the iteration...")
+        time_cp1 = time.time()
         for iter in range(n_iter):
             if self.method == "euclidean":
                 U, V, obj_val = self.update_euclidean(X, U, V, W)
             else:
                 U, V, obj_val = self.update_divergence(X, U, V, W)
-            print(np.sum(U), np.sum(V))
             print("Iteration %d; objective value = %.2f" % (iter, obj_val))
+        time_cp2 = time.time()
+        print("total duration: %d; avg duration/iter: %.2f" % (time_cp2 - time_cp1, (time_cp2 - time_cp1) / n_iter))
         # set the euclidean length of each col vec in U = 1
         sum_col_U = np.sqrt(np.sum(U**2, axis=0))
         U = U / sum_col_U
