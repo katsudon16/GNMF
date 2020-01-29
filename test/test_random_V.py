@@ -19,24 +19,23 @@ sys.path.append(dirname(dirname(abspath(__file__))))
 from src.nmf import Nmf
 from src.gnmf import Gnmf
 
-def plot(W, width, height, len):
+def plot(U, cols, rows, len):
     """
     Plots all basis images
-    - W     : the basis matrix
-    - width : # cols in the canvas
-    - height: # rows in the canvas
+    - U     : the basis matrix
+    - cols  : # cols in the canvas
+    - rows  : # rows in the canvas
     - len   : the height/width of the matrix (assuming it's a square)
     """
-    #TODO: better parameter names
-    # sns.heatmap(W)
+    # sns.heatmap(U)
     # plt.show()
     # return
     plt.set_cmap("gray")
-    canvas = Image.new("L", (width * len + width+1, height * len + height+1)) # (w, h)
+    canvas = Image.new("L", (cols * len + cols+1, rows * len + rows+1)) # (w, h)
     # 4 rows, 5 cols
-    for i in range(height):
-        for j in range(width):
-            basis = W[:, i * width + j].reshape((len, len))
+    for i in range(rows):
+        for j in range(cols):
+            basis = U[:, i * cols + j].reshape((len, len))
             basis = basis / basis.max() * 255
             img = expand(Image.fromarray(basis), border=1, fill=255)
             canvas.paste(img.copy(), (j * len + j, i * len + i))

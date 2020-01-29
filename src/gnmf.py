@@ -37,7 +37,7 @@ class Gnmf(object):
         # initialize distance matrix and W matrix
         dist_matrix = np.full((m, m), np.inf)
         W = np.zeros((m, m))
-        #TODO: implementation improvement? remove for loops
+        #TODO*: implementation improvement? remove for loops
         # src: https://ljvmiranda921.github.io/notebook/2017/02/09/k-nearest-neighbors/
         for i in range(m - 1):
             for j in range(i + 1, m):
