@@ -39,7 +39,6 @@ class Gnmf(object):
         W = np.zeros((m, m))
         #TODO: implementation improvement? remove for loops
         # src: https://ljvmiranda921.github.io/notebook/2017/02/09/k-nearest-neighbors/
-        #TODO: allow users to construct their own W matrix - test if symmetric
         for i in range(m - 1):
             for j in range(i + 1, m):
                 dist_matrix[i][j] = dist_matrix[j][i] = np.linalg.norm(X[:,i] - X[:,j])
@@ -95,8 +94,7 @@ class Gnmf(object):
         U_row_sum = np.sum(U, axis=0).reshape((k, 1))
         # TODO: check if it's scalable - test with different matrix size - use time package
         for i in range(k):
-            # TODO: pseudoinverse pinv
-            V[i] = V[i] @ np.linalg.inv(U_row_sum[i] * np.identity(m) + lmbda * L)
+            V[i] = V[i] @ np.linalg.pinv(U_row_sum[i] * np.identity(m) + lmbda * L)
         # update U
         V_col_sum = np.sum(V, axis=1).reshape((1, k))
         U = U * np.divide(np.divide(X, U @ V) @ V.T, V_col_sum)
@@ -107,15 +105,25 @@ class Gnmf(object):
         ) - X + X_temp)
         return(U, V, obj_val)
 
-    def factorize(self, X, n_iter=100):
+    def is_matrix_symmetric(self, M, rtol=1e-05, atol=1e-08):
+        return(np.allclose(M, M.T, rtol=rtol, atol=atol))
+
+    def factorize(self, X, n_iter=100, W=None):
         """
         Factorize matrix X into W and H given rank using multiplicative method
-        method options: ["euclidean", "divergence"]
+        params:
+        - X     : the original X matrix
+        - n_iter: the number of iterations
+        - W     : pre-computed weight metrix;
+                  knn dot-products will be run if none is provided
         """
         n, m = X.shape
         rank = self.rank
         method = self.method
-        W = self.get_weights_matrix(X)
+        if W == None:
+            W = self.get_weights_matrix(X)
+        elif not is_matrix_symmetric(W):
+            raise ValueError("The provided weight matrix should be symmetric")
         U = self.init_rand_matrix(n, rank)
         V = self.init_rand_matrix(rank, m)
         print("starting the iteration...")
