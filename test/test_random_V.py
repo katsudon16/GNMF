@@ -6,7 +6,7 @@ GNMF implementation.
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-from os.path import join, dirname, abspath
+from os.path import join, dirname, abspath, exists
 from PIL import Image
 from PIL.ImageOps import expand
 import seaborn as sns
@@ -42,29 +42,75 @@ def plot(U, cols, rows, len):
     plt.imshow(canvas)
     plt.show()
 
+def calc_reconstruction_error(X, U, V):
+    X_new = U @ V
+    return(np.sum((X_new - X)**2))
+
 if __name__ == "__main__":
     # parse command line arguments
-    parser = argparse.ArgumentParser(description="Test GNMF implementation given parameters")
-    parser.add_argument("-n", "--height", type=int, help="The height of the V matrix", required=True)
-    parser.add_argument("-m", "--width", type=int, help="The width of the V matrix", required=True)
-    parser.add_argument("-k", "--rank", type=int, help="The rank used for the GNMF", required=True)
-    parser.add_argument("-p", "--pneighbor", type=int, default=5, help="The number of nearest neighbors to be considered")
-    parser.add_argument("-l", "--lmbda", type=int, default=10, help="The lambda used for the regularizer")
-    parser.add_argument("-i", "--iters", type=int, default=[100], nargs="+", help="The list of # iterations to be run")
-    parser.add_argument("-mt", "--method", type=str, default="euclidean", help="The update method: divergence or euclidean")
-    input = parser.parse_args()
+    # parser = argparse.ArgumentParser(description="Test GNMF implementation given parameters")
+    # parser.add_argument("-n", "--height", type=int, help="The height of the V matrix", required=True)
+    # parser.add_argument("-m", "--width", type=int, help="The width of the V matrix", required=True)
+    # parser.add_argument("-k", "--rank", type=int, help="The rank used for the GNMF", required=True)
+    # parser.add_argument("-p", "--pneighbor", type=int, default=5, help="The number of nearest neighbors to be considered")
+    # parser.add_argument("-l", "--lmbda", type=int, default=10, help="The lambda used for the regularizer")
+    # parser.add_argument("-i", "--iters", type=int, default=100, help="The list of # iterations to be run")
+    # parser.add_argument("-mt", "--method", type=str, default="euclidean", help="The update method: divergence or euclidean")
+    # parser.add_argument("-s", "--seed", type=int, default=None, help="The random seed")
+    # input = parser.parse_args()
 
     # initiate X
-    X = np.random.rand(input.height, input.width)
-    # initiate gnmf
-    gnmf = Gnmf(rank=input.rank, p=input.pneighbor, lmbda=input.lmbda, method=input.method)
+    # if input.seed:
+    #     np.random.seed(input.seed)
+    # X = np.random.rand(input.height, input.width)
 
-    # run given # iterations
-    for iter in input.iters:
-        time_cp1 = time.time()
-        U, V = gnmf.factorize(X, n_iter=iter)
-        time_cp2 = time.time()
-        print("Total time: ", time_cp2 - time_cp1)
-        X_new = U @ V
-        reconstruct_er = np.sum((X - X_new)**2)
-        print("=================================")
+    # retrieve X & W from test dataset numpy files
+    np_dir = join(dirname(abspath(__file__)), "dataset")
+    heights = [100, 500, 1000, 5000, 10000, 30000]
+    widths = [50, 100, 500, 1000, 3000, 5000]
+    pneighbors = [3, 5, 7, 10, 15, 20, 50]
+    n_iter = 500
+
+    # location for saving results
+    res_dir = join(dirname(abspath(__file__)), "results")
+    results = []
+
+    for h in heights:
+        for w in widths:
+            for p in pneighbors:
+                if not exists(join(np_dir, "h%d_w%d_p%d_X.npy" % (h, w, p))):
+                    continue
+                X = np.load(join(np_dir, "h%d_w%d_p%d_X.npy" % (h, w, p)))
+                W = np.load(join(np_dir, "h%d_w%d_p%d_W.npy" % (h, w, p)))
+
+                #TODO: test with different ranks and lambdas
+                rank = 10
+                lmbda = 10
+
+                # run gnmf
+                gnmf = Gnmf(X=X, rank=rank, W=W, lmbda=lmbda, method="euclidean")
+                time_cp1 = time.time()
+                gnmf_U, gnmf_V, obj_vals = gnmf.factorize(n_iter=n_iter, return_obj_values=True)
+                time_cp2 = time.time()
+                time_gnmf = time_cp2 - time_cp1
+
+                # output plot obj_vals >< iterations
+                sns_plot = sns.lineplot(x=range(1, 501), y=obj_vals)
+                sns_plot.set(title="%dx%d matrix; k=%d; p=%d; lambda=%d" % (h, w, rank, p, lmbda),
+                             xlabel="Iterations", ylabel="Objective function values")
+                plt.savefig(join(res_dir, "gnmf_%dx%d_k%d_p%d_ld%d.png" % (h, w, rank, p, lmbda)))
+                plt.clf()
+
+                # compute reconstruction errors
+                gnmf_error = calc_reconstruction_error(X, gnmf_U, gnmf_V)
+
+                # run nmf
+                nmf = Nmf(rank=rank, method="euclidean")
+                nmf_U, nmf_V = nmf.factorize(X, n_iter=n_iter)
+                nmf_error = calc_reconstruction_error(X, nmf_U, nmf_V)
+                results.append([h, w, rank, p, lmbda, time_gnmf, gnmf_error, nmf_error])
+
+    with open(join(res_dir, "results.csv"), "w") as file:
+        file.write("n,m,k,p,lambda,gnmf_dur,gnmf_error,nmf_error\n")
+        for res in results:
+            file.write("%s\n" % ",".join(str(x) for x in res))

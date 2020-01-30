@@ -3,3 +3,6 @@
 
 dataset/*/*
 !dataset/*/*.py
+
+*.npy
+*.png

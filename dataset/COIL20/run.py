@@ -103,6 +103,8 @@ if __name__ == "__main__":
     input = parser.parse_args()
 
     X = read_dataset()
-    gnmf = Gnmf(rank=input.rank, p=input.pneighbor, lmbda=input.lmbda, method=input.method)
-    U, V = gnmf.factorize(X, n_iter=input.iters)
+    # gnmf = Gnmf(rank=input.rank, p=input.pneighbor, lmbda=input.lmbda, method=input.method)
+    # U, V = gnmf.factorize(X, n_iter=input.iters)
+    nmf = Nmf(rank=input.rank, method=input.method)
+    U, V = nmf.factorize(X, n_iter=input.iters)
     plot(U)
