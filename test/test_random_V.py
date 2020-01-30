@@ -65,4 +65,6 @@ if __name__ == "__main__":
         U, V = gnmf.factorize(X, n_iter=iter)
         time_cp2 = time.time()
         print("Total time: ", time_cp2 - time_cp1)
+        X_new = U @ V
+        reconstruct_er = np.sum((X - X_new)**2)
         print("=================================")
