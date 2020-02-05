@@ -23,6 +23,9 @@ class Gnmf(object):
             self.W = self.calc_weights_matrix()
         elif not self.is_matrix_symmetric(self.W):
             raise ValueError("The provided weight matrix should be symmetric")
+        # calc the Laplacian matrix L
+        D = np.diag(np.sum(self.W, axis=0))
+        self.L = D - self.W
 
     def init_rand_matrix(self, nrow, ncol, seed=None):
         """
@@ -62,10 +65,12 @@ class Gnmf(object):
         print("total time: ", time_cp2 - time_cp1)
         return(W)
 
-    def update_euclidean(self, X, U, V, W):
+    def update_euclidean(self, U, V):
         """
         Update U & V using multiplicative euclidean approach
         """
+        X = self.X
+        W = self.W
         lmbda = self.lmbda
         # update V
         # calc the Laplacian matrix L
@@ -89,15 +94,16 @@ class Gnmf(object):
         np_ar[np_ar == 0] = eps
         return(np_ar)
 
-    def update_divergence(self, X, U, V, W, lmbda=100):
+    def update_divergence(self, U, V):
         """
         Update U & V using multiplicative divergence approach
         """
+        X = self.X
+        lmbda = self.lmbda
+        L = self.L
         n, m = X.shape
         k, _ = V.shape
-        # calc the Laplacian matrix L
-        D = np.diag(np.sum(W, axis=0))
-        L = D - W
+
         # update V
         #TODO*: improve using iterative algorithm CG
         V = V * (U.T @ np.divide(X, U @ V))
@@ -110,8 +116,8 @@ class Gnmf(object):
         # calc obj_val
         X_temp = U @ V
         obj_val = np.sum(X * np.log(
-        self.np_pos(np.divide(self.np_pos(X), self.np_pos(X_temp)), add_eps=True)
-        ) - X + X_temp)
+            self.np_pos(np.divide(self.np_pos(X), self.np_pos(X_temp)), add_eps=True)
+            ) - X + X_temp)
         return(U, V, obj_val)
 
     def is_matrix_symmetric(self, M, rtol=1e-05, atol=1e-08):
@@ -143,12 +149,13 @@ class Gnmf(object):
         obj_vals = [] # a list of the produced objective function values
         curr_obj_val = float("inf")
         for iter in range(n_iter):
-            # if iter % 20 == 0:
-            #     print("Completed %d iterations..." % iter)
+            if iter % 20 == 0:
+                print("Completed %d iterations..." % iter)
 
-            U, V, obj_val = (self.update_euclidean(X, U, V, W)
+            U, V, obj_val = (self.update_euclidean(U, V)
                             if self.method == "euclidean"
-                            else self.update_divergence(X, U, V, W))
+                            else self.update_divergence(U, V))
+            print("Objective function value is", obj_val)
 
             # check if the objective function value is decreasing
             if curr_obj_val < obj_val:
@@ -161,9 +168,9 @@ class Gnmf(object):
         print("total duration: %d; avg duration/iter: %.2f" % (time_cp2 - time_cp1, (time_cp2 - time_cp1) / n_iter))
 
         # set the euclidean length of each col vec in U = 1
-        sum_col_U = np.sqrt(np.sum(U**2, axis=0))
-        U = U / sum_col_U
-        V = V / sum_col_U.reshape((rank, 1))
+        # sum_col_U = np.sqrt(np.sum(U**2, axis=0))
+        # U = U / sum_col_U
+        # V = V / sum_col_U.reshape((rank, 1))
 
         if return_obj_values:
             return(U, V, obj_vals)

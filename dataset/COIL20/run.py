@@ -13,15 +13,6 @@ import argparse
 from src.nmf import Nmf
 from src.gnmf import Gnmf
 
-def init_rand_matrix(nrow, ncol, seed=None):
-    """
-    Initialize matrix (random) given # rows and # cols
-    """
-    if not seed:
-        seed = np.random.randint(1000)
-    np.random.seed(seed)
-    return(np.random.dirichlet(np.ones(nrow), size=ncol).T)
-
 def read_dataset():
     """
     Read COIL20 dataset, resize to 32x32, and return them as np array X
@@ -30,6 +21,7 @@ def read_dataset():
     coil20_len = 20
     coil20_obj_len = 72
     img_size = 32
+
     X = np.zeros((img_size * img_size, coil20_len * coil20_obj_len))
 
     for obj_i in range(coil20_len):
@@ -39,39 +31,6 @@ def read_dataset():
             img_n = obj_i * coil20_obj_len + obj_img_j
             X[:, img_n] = np.asarray(img).flatten()
     return(X)
-
-def update_euclidean(U, V, X):
-    # update V
-    V = V * np.divide(U.T @ X, U.T @ U @ V)
-    # update U
-    U = U * np.divide(X @ V.T, U @ V @ V.T)
-    # calc objective func
-    R = X - (U @ V)
-    D = np.sum(R * R)
-    return(U, V, D)
-
-def np_pos(np_ar, add_eps=False):
-    """Ensures all values in a numpy array > 0"""
-    eps = np.finfo(np_ar.dtype).eps
-    if add_eps:
-        return(np_ar + eps)
-    np_ar[np_ar == 0] = eps
-    return(np_ar)
-
-def update_divergence(U, V, X):
-    n, k = U.shape
-    V_col_sum = np.sum(V, axis=1).reshape((1, k))
-    U_row_sum = np.sum(U, axis=0).reshape((k, 1))
-    # update V
-    V = V * np.divide(U.T @ np.divide(X, U @ V), U_row_sum)
-    # update U
-    U = U * np.divide(np.divide(X, U @ V) @ V.T, V_col_sum)
-    # calc objective func
-    X_temp = U @ V
-    obj_val = np.sum(X * np.log(
-        np_pos(np.divide(np_pos(X), np_pos(X_temp)), add_eps=True)
-    ) - X + X_temp)
-    return(U, V, obj_val)
 
 def plot(U):
     """
@@ -103,8 +62,8 @@ if __name__ == "__main__":
     input = parser.parse_args()
 
     X = read_dataset()
-    # gnmf = Gnmf(rank=input.rank, p=input.pneighbor, lmbda=input.lmbda, method=input.method)
-    # U, V = gnmf.factorize(X, n_iter=input.iters)
-    nmf = Nmf(rank=input.rank, method=input.method)
-    U, V = nmf.factorize(X, n_iter=input.iters)
-    plot(U)
+    gnmf = Gnmf(X=X, rank=input.rank, p=input.pneighbor, lmbda=input.lmbda, method=input.method)
+    U, V = gnmf.factorize(n_iter=input.iters)
+    # nmf = Nmf(rank=input.rank, method=input.method)
+    # U, V = nmf.factorize(X, n_iter=input.iters)
+    

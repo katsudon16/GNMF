@@ -54,7 +54,7 @@ if __name__ == "__main__":
     pneighbors = [3, 5, 7, 10, 15, 20, 50]
     n_iter = 500
 
-    generate_W = True
+    generate_W = False
 
     # location for saving results
     res_dir = join(dirname(abspath(__file__)), "results")
@@ -72,10 +72,10 @@ if __name__ == "__main__":
 
                 #TODO: test with different ranks and lambdas
                 rank = 10
-                lmbda = 10
+                lmbda = 2
 
                 # run gnmf
-                gnmf = Gnmf(X=X, rank=rank, W=W, lmbda=lmbda, method="euclidean")
+                gnmf = Gnmf(X=X, rank=rank, W=W, lmbda=lmbda, method="divergence")
                 time_cp1 = time.time()
                 gnmf_U, gnmf_V, obj_vals = gnmf.factorize(n_iter=n_iter, return_obj_values=True)
                 time_cp2 = time.time()
