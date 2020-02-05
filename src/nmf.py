@@ -63,5 +63,5 @@ class Nmf(object):
                 W, H, obj_val = self.update_euclidean(W, H, V)
             else:
                 W, H, obj_val = self.update_divergence(W, H, V)
-            print("Iteration %d; objective value = %.2f" % (iter, obj_val))
+            # print("Iteration %d; objective value = %.2f" % (iter, obj_val))
         return(W, H)

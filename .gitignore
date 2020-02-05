@@ -1,4 +1,8 @@
 .DS_Store
 *.pyc
 
-dataset/COIL20/*
+dataset/*/*
+!dataset/*/*.py
+
+*.npy
+*.png
