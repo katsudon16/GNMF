@@ -47,29 +47,14 @@ def calc_reconstruction_error(X, U, V):
     return(np.sum((X_new - X)**2))
 
 if __name__ == "__main__":
-    # parse command line arguments
-    # parser = argparse.ArgumentParser(description="Test GNMF implementation given parameters")
-    # parser.add_argument("-n", "--height", type=int, help="The height of the V matrix", required=True)
-    # parser.add_argument("-m", "--width", type=int, help="The width of the V matrix", required=True)
-    # parser.add_argument("-k", "--rank", type=int, help="The rank used for the GNMF", required=True)
-    # parser.add_argument("-p", "--pneighbor", type=int, default=5, help="The number of nearest neighbors to be considered")
-    # parser.add_argument("-l", "--lmbda", type=int, default=10, help="The lambda used for the regularizer")
-    # parser.add_argument("-i", "--iters", type=int, default=100, help="The list of # iterations to be run")
-    # parser.add_argument("-mt", "--method", type=str, default="euclidean", help="The update method: divergence or euclidean")
-    # parser.add_argument("-s", "--seed", type=int, default=None, help="The random seed")
-    # input = parser.parse_args()
-
-    # initiate X
-    # if input.seed:
-    #     np.random.seed(input.seed)
-    # X = np.random.rand(input.height, input.width)
-
     # retrieve X & W from test dataset numpy files
     np_dir = join(dirname(abspath(__file__)), "dataset")
     heights = [100, 500, 1000, 5000, 10000, 30000]
     widths = [50, 100, 500, 1000, 3000, 5000]
     pneighbors = [3, 5, 7, 10, 15, 20, 50]
     n_iter = 500
+
+    generate_W = True
 
     # location for saving results
     res_dir = join(dirname(abspath(__file__)), "results")
@@ -81,7 +66,9 @@ if __name__ == "__main__":
                 if not exists(join(np_dir, "h%d_w%d_p%d_X.npy" % (h, w, p))):
                     continue
                 X = np.load(join(np_dir, "h%d_w%d_p%d_X.npy" % (h, w, p)))
-                W = np.load(join(np_dir, "h%d_w%d_p%d_W.npy" % (h, w, p)))
+
+                W = (None if generate_W else
+                        np.load(join(np_dir, "h%d_w%d_p%d_W.npy" % (h, w, p))))
 
                 #TODO: test with different ranks and lambdas
                 rank = 10
