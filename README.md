@@ -8,12 +8,10 @@
 
 ### Main todo list
 
-- Test with different matrix shapes and # iterations to
-  i) check if the implementation is correct
-  ii) check if the implementation is scalable
-- Compare the result with the paper
-- Plot and compare the reconstruction errors between GNMF and vanilla NMF methods
-- Plot the objective function values vs iterations
+- Test with lambda = 0
+- Compare the result with the paper using the accuracy
+- Test divergence method
+- Create README for testing
 
 ### Variables naming
 
