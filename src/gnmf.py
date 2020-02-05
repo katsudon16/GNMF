@@ -20,7 +20,7 @@ class Gnmf(object):
         self.W = W
         self.p = p
         if self.W is None:
-            self.W = self.calc_weights_matrix(self.X)
+            self.W = self.calc_weights_matrix()
         elif not self.is_matrix_symmetric(self.W):
             raise ValueError("The provided weight matrix should be symmetric")
 
@@ -33,31 +33,31 @@ class Gnmf(object):
         np.random.seed(seed)
         return(np.random.dirichlet(np.ones(nrow), size=ncol).T)
 
-    def calc_weights_matrix(self, X):
+    def calc_weights_matrix(self):
         """
-        Generate weights matrix by p-nearest neighbors + dot-product weighting
-        Complexity: O(N^2 * M)
+        Generate weights matrix by faiss (facebook AI similarity search) + dot-product weighting
         """
-        print("generating weight matrix...")
+
+        import faiss
+
+        print("Generating weight matrix using faiss...")
         time_cp1 = time.time()
-        _, m = X.shape
-        p = self.p
-        # initialize distance matrix and W matrix
-        dist_matrix = np.full((m, m), np.inf)
+        X = self.X.astype(np.float32)
+        n, m = X.shape
+        xb = np.ascontiguousarray(X.T) # database ~ rows of vectors
+        xq = np.ascontiguousarray(X.T) # query vectors
         W = np.zeros((m, m))
-        #TODO*: implementation improvement? remove for loops
-        # src: https://ljvmiranda921.github.io/notebook/2017/02/09/k-nearest-neighbors/
-        for i in range(m - 1):
-            for j in range(i + 1, m):
-                dist_matrix[i][j] = dist_matrix[j][i] = np.linalg.norm(X[:,i] - X[:,j])
-        # finding p-nearest neighbors for each data point
-        sorted_idx = np.argsort(dist_matrix, axis=1)
+
+        p = self.p
+        index = faiss.IndexFlatL2(n)   # build the index
+        index.add(xb)                  # add vectors to the index
+        _, I = index.search(xq, p+1)   # the first col would be the vector itself
+
         for i in range(m):
             for j in range(p):
-                neighbor = sorted_idx[i][j]
+                neighbor = I[i][j+1]
                 # compute dot-product weighting
                 W[i][neighbor] = W[neighbor][i] = np.dot(X[:,i], X[:,neighbor])
-        #TODO*: locality sensitive hashing (LSH) - spend few minutes read on finding knn
         time_cp2 = time.time()
         print("total time: ", time_cp2 - time_cp1)
         return(W)
