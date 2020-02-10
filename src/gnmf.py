@@ -24,8 +24,8 @@ class Gnmf(object):
         elif not self.is_matrix_symmetric(self.W):
             raise ValueError("The provided weight matrix should be symmetric")
         # calc the Laplacian matrix L
-        D = np.diag(np.sum(self.W, axis=0))
-        self.L = D - self.W
+        self.D = np.diag(np.sum(self.W, axis=0))
+        self.L = self.D - self.W
 
     def init_rand_matrix(self, nrow, ncol, seed=None):
         """
@@ -72,17 +72,16 @@ class Gnmf(object):
         X = self.X
         W = self.W
         lmbda = self.lmbda
+        L = self.L
+        D = self.D
         # update V
-        # calc the Laplacian matrix L
-        D = np.diag(np.sum(W, axis=0))
-        L = D - W
         V = V * np.divide(U.T @ X + lmbda * (V @ W), U.T @ U @ V + lmbda * (V @ D))
         # update U
         U = U * np.divide(X @ V.T, U @ V @ V.T)
         # calc objective func
         R = X - (U @ V)
-        D = np.sum(R * R) + lmbda * np.trace(V @ L @ V.T)
-        return(U, V, D)
+        obj_val = np.sum(R * R) + lmbda * np.trace(V @ L @ V.T)
+        return(U, V, obj_val)
 
     def np_pos(self, np_ar, add_eps=False):
         """
@@ -155,7 +154,7 @@ class Gnmf(object):
             U, V, obj_val = (self.update_euclidean(U, V)
                             if self.method == "euclidean"
                             else self.update_divergence(U, V))
-            print("Objective function value is", obj_val)
+            print("Objective function value is %.2f" % obj_val)
 
             # check if the objective function value is decreasing
             if curr_obj_val < obj_val:
@@ -168,9 +167,9 @@ class Gnmf(object):
         print("total duration: %d; avg duration/iter: %.2f" % (time_cp2 - time_cp1, (time_cp2 - time_cp1) / n_iter))
 
         # set the euclidean length of each col vec in U = 1
-        # sum_col_U = np.sqrt(np.sum(U**2, axis=0))
-        # U = U / sum_col_U
-        # V = V / sum_col_U.reshape((rank, 1))
+        sum_col_U = np.sqrt(np.sum(U**2, axis=0))
+        V = V * sum_col_U.reshape((rank, 1))
+        U = U / sum_col_U
 
         if return_obj_values:
             return(U, V, obj_vals)

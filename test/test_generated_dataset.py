@@ -75,7 +75,7 @@ if __name__ == "__main__":
                 lmbda = 2
 
                 # run gnmf
-                gnmf = Gnmf(X=X, rank=rank, W=W, lmbda=lmbda, method="divergence")
+                gnmf = Gnmf(X=X, rank=rank, W=W, lmbda=lmbda, method="euclidean")
                 time_cp1 = time.time()
                 gnmf_U, gnmf_V, obj_vals = gnmf.factorize(n_iter=n_iter, return_obj_values=True)
                 time_cp2 = time.time()
