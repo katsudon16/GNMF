@@ -5,24 +5,33 @@ class Gnmf(object):
     """
     Graph regularized NMF
     """
-    def __init__(self, X, rank=10, p=3, W=None, lmbda=100, method="euclidean"):
+    def __init__(self, X, rank=10, p=3, W=None, lmbda=100, method="euclidean",
+                 knn_index_type="IndexFlatL2", knn_index_args=None):
         """
         - X     : the original matrix
         - rank  : NMF rank
         - p     : # closest neighbors to be taken into account in the weight matrix
         - W     : the weight matrix - must be symmetric; p will be ignored if W is provided
         - method: "euclidean" or "divergence"
+        - knn_index_type: faiss index type to compute k-nearest neighbors in matrix generation
+        - knn_index_args: faiss index arguments; if None, by default the argument for IndexFlatL2 is used
+        Check https://github.com/facebookresearch/faiss/wiki/Faiss-indexes for further details on faiss index
         """
         self.X = X
         self.rank = rank
         self.method = method
         self.lmbda = lmbda
+
+        # weight matrix variables
         self.W = W
         self.p = p
+        self.knn_index_type = knn_index_type
+        self.knn_index_args = knn_index_args
         if self.W is None:
             self.W = self.calc_weights_matrix()
         elif not self.is_matrix_symmetric(self.W):
             raise ValueError("The provided weight matrix should be symmetric")
+
         # calc the Laplacian matrix L
         self.D = np.diag(np.sum(self.W, axis=0))
         self.L = self.D - self.W
@@ -52,7 +61,10 @@ class Gnmf(object):
         W = np.zeros((m, m))
 
         p = self.p
-        index = faiss.IndexFlatL2(n)   # build the index
+        if not self.knn_index_args:
+            self.knn_index_args = (n,)
+        # build the index
+        index = getattr(faiss, self.knn_index_type)(*self.knn_index_args)
         index.add(xb)                  # add vectors to the index
         _, I = index.search(xq, p+1)   # the first col would be the vector itself
 
