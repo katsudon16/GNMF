@@ -32,7 +32,6 @@ def plot(U, cols, rows, len):
     # return
     plt.set_cmap("gray")
     canvas = Image.new("L", (cols * len + cols+1, rows * len + rows+1)) # (w, h)
-    # 4 rows, 5 cols
     for i in range(rows):
         for j in range(cols):
             basis = U[:, i * cols + j].reshape((len, len))
