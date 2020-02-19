@@ -4,6 +4,8 @@ import time
 class Gnmf(object):
     """
     Graph regularized NMF
+
+    Note: the divergence update method is not yet finalized
     """
     def __init__(self, X, rank=10, p=3, W=None, lmbda=100, method="euclidean",
                  knn_index_type="IndexFlatL2", knn_index_args=None):
@@ -49,7 +51,6 @@ class Gnmf(object):
         """
         Generate weights matrix by faiss (facebook AI similarity search) + dot-product weighting
         """
-
         import faiss
 
         print("Generating weight matrix using faiss...")
@@ -137,7 +138,7 @@ class Gnmf(object):
         """
         return(np.allclose(M, M.T, rtol=rtol, atol=atol))
 
-    def factorize(self, n_iter=100, return_obj_values=False):
+    def factorize(self, n_iter=100, return_obj_values=False, seed=None):
         """
         Factorize matrix X into W and H given rank using multiplicative method
         params:
@@ -152,10 +153,10 @@ class Gnmf(object):
         W = self.W
 
         # initialize U & V
-        U = self.init_rand_matrix(n, rank)
-        V = self.init_rand_matrix(rank, m)
+        U = self.init_rand_matrix(n, rank, seed)
+        V = self.init_rand_matrix(rank, m, seed)
 
-        # print("running GNMF given matrix %dx%d, rank %d, %d neighbors, lambda %d, %d iterations" % (n, m, rank, self.p, self.lmbda, n_iter))
+        print("running GNMF given matrix %dx%d, rank %d, %d neighbors, lambda %d, %d iterations" % (n, m, rank, self.p, self.lmbda, n_iter))
         time_cp1 = time.time()
         obj_vals = [] # a list of the produced objective function values
         curr_obj_val = float("inf")

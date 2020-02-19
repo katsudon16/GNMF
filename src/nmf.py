@@ -49,19 +49,23 @@ class Nmf(object):
 
         return(W, H, obj_val)
 
-    def factorize(self, V, n_iter=100):
+    def factorize(self, V, n_iter=100, return_obj_values=False, seed=None):
         """
         Factorizes matrix V into W and H given rank using multiplicative method
         method options: ["euclidean", "divergence"]
         """
         n, m = V.shape
         rank = self.rank
-        W = self.init_rand_matrix(n, rank)
-        H = self.init_rand_matrix(rank, m)
+        W = self.init_rand_matrix(n, rank, seed)
+        H = self.init_rand_matrix(rank, m, seed)
+        obj_vals = [] # a list of the produced objective function values
         for iter in range(n_iter):
             if self.method == "euclidean":
                 W, H, obj_val = self.update_euclidean(W, H, V)
             else:
                 W, H, obj_val = self.update_divergence(W, H, V)
-            # print("Iteration %d; objective value = %.2f" % (iter, obj_val))
+            obj_vals.append(obj_val)
+            print("Iteration %d; objective value = %.2f" % (iter, obj_val))
+        if return_obj_values:
+            return(W, H, obj_vals)
         return(W, H)
